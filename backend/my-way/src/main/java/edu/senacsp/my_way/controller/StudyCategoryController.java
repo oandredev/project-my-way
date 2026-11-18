@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/study-category")
 @CrossOrigin(origins = "${path.url}")
@@ -25,5 +27,11 @@ public class StudyCategoryController {
     @ApiMessage("Successfully created")
     public ResponseEntity<StudyCategoryResponse> create(@AuthenticationPrincipal User user, @RequestBody StudyCategoryCreateRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(user, req));
+    }
+
+    @GetMapping()
+    @ApiMessage("Successfully loaded")
+    public ResponseEntity<List<StudyCategoryResponse>> findAllByUser(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.findAllByUser(user));
     }
 }

@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Service
 public class StudyCategoryService {
     private final StudyCategoryRepository repo;
@@ -65,6 +67,25 @@ public class StudyCategoryService {
 
         return new StudyCategoryResponse(category.getId(), category.getName(), category.getColorId(),
                 category.getModifiedAt(), category.getCreatedAt());
+    }
+
+    public List<StudyCategoryResponse> findAllByUser(User user)
+    {
+        // Validation
+        User userDB = userRepo.findById(user.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        // Get and Return
+        return repo.findAllByUserId(user.getId())
+                .stream()
+                .map(category -> new StudyCategoryResponse(
+                        category.getId(),
+                        category.getName(),
+                        category.getColorId(),
+                        category.getModifiedAt(),
+                        category.getCreatedAt()
+                ))
+                .toList();
     }
 
     //-------------------------------------------------------------------------------------------------------------
