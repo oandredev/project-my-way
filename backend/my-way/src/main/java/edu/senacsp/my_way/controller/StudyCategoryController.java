@@ -2,6 +2,7 @@ package edu.senacsp.my_way.controller;
 
 import edu.senacsp.my_way.annotation.ApiMessage;
 import edu.senacsp.my_way.dto.request.studyCategory.StudyCategoryCreateRequest;
+import edu.senacsp.my_way.dto.request.studyCategory.StudyCategoryUpdateRequest;
 import edu.senacsp.my_way.dto.response.studyCategory.StudyCategoryResponse;
 import edu.senacsp.my_way.entity.User;
 import edu.senacsp.my_way.service.StudyCategoryService;
@@ -33,5 +34,13 @@ public class StudyCategoryController {
     @ApiMessage("Successfully loaded")
     public ResponseEntity<List<StudyCategoryResponse>> findAllByUser(@AuthenticationPrincipal User user) {
         return ResponseEntity.status(HttpStatus.OK).body(service.findAllByUser(user));
+    }
+
+    @PutMapping("/{id}")
+    @ApiMessage("Successfully updated")
+    public ResponseEntity<StudyCategoryResponse> update(@AuthenticationPrincipal User user,
+                                                        @PathVariable Long id,
+                                                        @RequestBody StudyCategoryUpdateRequest req) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.update(user, id, req));
     }
 }

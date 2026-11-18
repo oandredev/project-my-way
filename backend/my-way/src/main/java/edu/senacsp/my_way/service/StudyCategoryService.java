@@ -1,6 +1,7 @@
 package edu.senacsp.my_way.service;
 
 import edu.senacsp.my_way.dto.request.studyCategory.StudyCategoryCreateRequest;
+import edu.senacsp.my_way.dto.request.studyCategory.StudyCategoryUpdateRequest;
 import edu.senacsp.my_way.dto.response.studyCategory.StudyCategoryResponse;
 
 import edu.senacsp.my_way.entity.StudyCategory;
@@ -69,14 +70,27 @@ public class StudyCategoryService {
                 category.getModifiedAt(), category.getCreatedAt());
     }
 
-    public List<StudyCategoryResponse> findAllByUser(User user)
-    {
+    /**
+     * Lists the active study categories of the authenticated user.
+     *
+     * <p>Only categories owned by the authenticated user are returned, so categories from
+     * other users are never exposed. Categories deactivated through the soft delete
+     * ({@code active = false}) are not included in the list.
+     *
+     * <p>If the user has no active categories, an empty list is returned.
+     *
+     * @param user the authenticated user, resolved from the JWT
+     * @return a list of {@link StudyCategoryResponse} with the data of each active category of the user
+     * @throws ResponseStatusException if the authenticated user no longer exists (CODE 401)
+     */
+    @Transactional(readOnly = true)
+    public List<StudyCategoryResponse> findAllByUser(User user) {
         // Validation
         User userDB = userRepo.findById(user.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
         // Get and Return
-        return repo.findAllByUserId(user.getId())
+        return repo.findAllByUserIdAndActiveTrue(userDB.getId())
                 .stream()
                 .map(category -> new StudyCategoryResponse(
                         category.getId(),
@@ -86,6 +100,63 @@ public class StudyCategoryService {
                         category.getCreatedAt()
                 ))
                 .toList();
+    }
+
+    /**
+     * Updates a study category of the authenticated user.
+     *
+     * <p>All fields are required and validated like in {@link #create}. The name has its extra
+     * spaces collapsed and must be unique among the categories of the same user
+     * (case-insensitive), ignoring the category being updated itself.
+     *
+     * <p>{@code active} works as a soft delete: sending {@code false} deactivates the category
+     * without removing it from the database, and sending {@code true} reactivates it.
+     *
+     * <p>The category is always searched among the ones owned by the authenticated user, so a
+     * category from another user is treated as not found.
+     *
+     * @param user the authenticated user, resolved from the JWT
+     * @param id   the id of the category to update, taken from the URL
+     * @param req  the category name, color and active flag
+     * @return a {@link StudyCategoryResponse} with the updated category's data
+     * @throws ResponseStatusException if id, name, color or active is missing or invalid (CODE 400),
+     *                                 the authenticated user no longer exists (CODE 401),
+     *                                 the category does not exist for this user (CODE 404),
+     *                                 or the user already has another category with this name (CODE 409)
+     */
+    @Transactional
+    public StudyCategoryResponse update(User user, Long id, StudyCategoryUpdateRequest req) {
+        // Validations
+        if (id == null || id <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id is required and must be positive");
+        }
+
+        String name = validateName(req.name());
+        Integer colorId = validateColorId(req.colorId());
+
+        if (req.active() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Active is required");
+        }
+
+        User userDB = userRepo.findById(user.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        StudyCategory category = repo.findByIdAndUserId(id, userDB.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+
+        if (repo.existsByUserIdAndNameIgnoreCaseAndIdNot(userDB.getId(), name, id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Category name already in use by this user");
+        }
+
+        // Sets
+        category.setName(name);
+        category.setColorId(colorId);
+        category.setActive(req.active());
+
+        category = repo.save(category);
+
+        return new StudyCategoryResponse(category.getId(), category.getName(), category.getColorId(),
+                category.getModifiedAt(), category.getCreatedAt());
     }
 
     //-------------------------------------------------------------------------------------------------------------

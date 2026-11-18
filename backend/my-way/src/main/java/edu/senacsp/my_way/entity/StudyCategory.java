@@ -31,6 +31,9 @@ public class StudyCategory {
     @Column(nullable = false)
     private Integer colorId;
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean active = true;
+
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant modifiedAt;
@@ -80,6 +83,14 @@ public class StudyCategory {
 
     public void setColorId(Integer colorId) {
         this.colorId = colorId;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public Instant getModifiedAt() {

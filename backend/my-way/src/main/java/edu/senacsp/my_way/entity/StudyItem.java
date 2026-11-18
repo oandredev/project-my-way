@@ -60,6 +60,9 @@ public class StudyItem {
     // Filled when status becomes DONE
     private Instant completedAt;
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean active = true;
+
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant modifiedAt;
