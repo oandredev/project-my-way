@@ -13,6 +13,8 @@ public interface StudyCategoryRepository extends JpaRepository<StudyCategory, Lo
 
     Optional<StudyCategory> findByIdAndUserId(Long id, Long userId);
 
+    Optional<StudyCategory> findByIdAndUserIdAndActiveTrue(Long id, Long userId);
+
     boolean existsByUserIdAndNameIgnoreCase(Long userId, String name);
 
     boolean existsByUserIdAndNameIgnoreCaseAndIdNot(Long userId, String name, Long id);

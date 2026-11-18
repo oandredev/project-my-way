@@ -189,6 +189,14 @@ public class StudyItem {
         this.completedAt = completedAt;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
     public Instant getModifiedAt() {
         return modifiedAt;
     }
