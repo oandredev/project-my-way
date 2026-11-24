@@ -24,5 +24,5 @@ export function useFocusLoad(fetcher, initialValue) {
     }, [reload]),
   );
 
-  return { data, loading, error, reload };
+  return { data, setData, loading, error, reload };
 }

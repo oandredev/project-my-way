@@ -7,24 +7,30 @@ export default function Button({
   title,
   icon,
   onPress,
-  variant = "primary",
+  variant = "primary", // primary | outline | danger
   disabled = false,
   style,
 }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const isPrimary = variant === "primary";
-  const textColor = isPrimary ? colors.onPrimary : colors.primary;
+  const textColor =
+    variant === "primary"
+      ? colors.onPrimary
+      : variant === "danger"
+        ? colors.error
+        : colors.primary;
+
+  const variantStyle =
+    variant === "primary"
+      ? styles.primary
+      : variant === "danger"
+        ? styles.danger
+        : styles.outline;
 
   return (
     <Pressable
-      style={[
-        styles.base,
-        isPrimary ? styles.primary : styles.outline,
-        disabled && styles.disabled,
-        style,
-      ]}
+      style={[styles.base, variantStyle, disabled && styles.disabled, style]}
       onPress={onPress}
       disabled={disabled}
     >
@@ -48,6 +54,7 @@ const createStyles = (colors) =>
     },
     primary: { backgroundColor: colors.primary },
     outline: { borderWidth: 1.5, borderColor: colors.primary },
+    danger: { borderWidth: 1.5, borderColor: colors.error },
     disabled: { opacity: 0.6 },
     text: { fontSize: 18, fontWeight: "600" },
   });

@@ -55,3 +55,16 @@ export function formatDate(iso) {
   const [year, month, day] = String(iso).slice(0, 10).split("-");
   return year && month && day ? `${day}/${month}/${year}` : "";
 }
+
+export const HOURS_STEP = 1;
+
+export function deriveStatus(doneHours, totalHours) {
+  if (doneHours <= 0) return "TODO";
+  if (doneHours >= totalHours) return "DONE";
+  return "IN_PROGRESS";
+}
+
+export function adjustHours(doneHours, totalHours, delta) {
+  const next = Math.round((doneHours + delta) * 100) / 100;
+  return Math.min(totalHours, Math.max(0, next));
+}

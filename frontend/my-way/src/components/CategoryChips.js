@@ -1,23 +1,62 @@
 import { useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
 import { getCategoryColor } from "../theme/theme";
 
-export default function CategoryChips({ categories, selectedId, onSelect }) {
+export default function CategoryChips({
+  categories,
+  selectedId,
+  onSelect,
+  allLabel = "Todas",
+  onAdd,
+  onManage,
+  onEditCategory,
+}) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  function renderChip(key, label, selected, onPress, dotColor) {
+  function renderChip({
+    key,
+    label,
+    selected,
+    onPress,
+    onLongPress,
+    tint,
+    actionIcon,
+  }) {
+    const isAction = Boolean(actionIcon);
+
+    const tintStyle = tint
+      ? {
+          borderColor: tint,
+          borderWidth: selected ? 2 : 1.5,
+          backgroundColor: `${tint}${selected ? "55" : "22"}`, // transparency
+        }
+      : null;
+
     return (
       <Pressable
         key={key}
-        style={[styles.chip, selected && styles.chipSelected]}
+        style={[
+          styles.chip,
+          selected && styles.chipSelected,
+          isAction && styles.chipAction,
+          tintStyle,
+        ]}
         onPress={onPress}
+        onLongPress={onLongPress}
       >
-        {dotColor && (
-          <View style={[styles.dot, { backgroundColor: dotColor }]} />
+        {isAction && (
+          <Ionicons name={actionIcon} size={18} color={colors.primary} />
         )}
-        <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+        <Text
+          style={[
+            styles.chipText,
+            selected && styles.chipTextSelected,
+            isAction && styles.chipTextAction,
+          ]}
+        >
           {label}
         </Text>
       </Pressable>
@@ -28,18 +67,41 @@ export default function CategoryChips({ categories, selectedId, onSelect }) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.row}
     >
-      {renderChip("all", "Todas", selectedId === null, () => onSelect(null))}
+      {renderChip({
+        key: "all",
+        label: allLabel,
+        selected: selectedId === null,
+        onPress: () => onSelect(null),
+      })}
+
       {categories.map((c) =>
-        renderChip(
-          c.id,
-          c.name,
-          selectedId === c.id,
-          () => onSelect(c.id),
-          getCategoryColor(c.colorId, colors.primary),
-        ),
+        renderChip({
+          key: c.id,
+          label: c.name,
+          selected: selectedId === c.id,
+          onPress: () => onSelect(c.id),
+          onLongPress: onEditCategory ? () => onEditCategory(c) : undefined,
+          tint: getCategoryColor(c.colorId, colors.primary),
+        }),
       )}
+
+      {onAdd &&
+        renderChip({
+          key: "add",
+          label: "Nova",
+          onPress: onAdd,
+          actionIcon: "add",
+        })}
+      {onManage &&
+        renderChip({
+          key: "manage",
+          label: "Gerenciar",
+          onPress: onManage,
+          actionIcon: "create-outline",
+        })}
     </ScrollView>
   );
 }
@@ -64,7 +126,8 @@ const createStyles = (colors) =>
       backgroundColor: colors.primarySoft,
       borderColor: colors.primary,
     },
-    dot: { width: 10, height: 10, borderRadius: 5 },
+    chipAction: { borderStyle: "dashed", borderColor: colors.primary },
     chipText: { color: colors.text, fontSize: 14 },
     chipTextSelected: { fontWeight: "700" },
+    chipTextAction: { color: colors.primary, fontWeight: "600" },
   });

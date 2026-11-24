@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -19,7 +20,17 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useStudyItems } from "../hooks/useStudyItems";
 import { useCategories } from "../hooks/useCategories";
-import { normalizeText, summarize } from "../utils/studyItem";
+import { updateStudyItem } from "../services/studyItemService";
+import {
+  HOURS_STEP,
+  adjustHours,
+  deriveStatus,
+  normalizeText,
+  summarize,
+} from "../utils/studyItem";
+import { buildItemPayload, itemToValues } from "../utils/studyItemForm";
+
+const SAVE_DELAY_MS = 600;
 
 export default function HomeScreen({ navigation }) {
   const { colors } = useTheme();
@@ -28,6 +39,7 @@ export default function HomeScreen({ navigation }) {
 
   const {
     items,
+    setItems,
     loading: loadingItems,
     error: itemsError,
     reload: reloadItems,
@@ -40,7 +52,7 @@ export default function HomeScreen({ navigation }) {
   } = useCategories();
 
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(null); // null = all
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const loading = loadingItems || loadingCategories;
@@ -67,13 +79,71 @@ export default function HomeScreen({ navigation }) {
     });
   }, [items, search, selectedCategory]);
 
+  //--------------------------------------------------------------
+  // Ajuste rápido das horas (+ e −)
+
+  // Os timers de envio leem o estado mais recente por aqui
+  const latest = useRef({ items, categoriesById });
+  latest.current = { items, categoriesById };
+
+  const saveTimers = useRef({});
+
+  useEffect(() => {
+    const timers = saveTimers.current;
+    return () => Object.values(timers).forEach(clearTimeout);
+  }, []);
+
+  function handleAdjustHours(item, direction) {
+    const total = Number(item.totalHours) || 0;
+    const done = Number(item.doneHours) || 0;
+    const next = adjustHours(done, total, direction * HOURS_STEP);
+    if (next === done) return;
+
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === item.id
+          ? { ...i, doneHours: next, status: deriveStatus(next, total) }
+          : i,
+      ),
+    );
+
+    clearTimeout(saveTimers.current[item.id]);
+    saveTimers.current[item.id] = setTimeout(
+      () => saveHours(item.id),
+      SAVE_DELAY_MS,
+    );
+  }
+
+  async function saveHours(itemId) {
+    const { items: currentItems, categoriesById: currentCategories } =
+      latest.current;
+
+    const item = currentItems.find((i) => i.id === itemId);
+    if (!item) return;
+
+    try {
+      const categoryId = currentCategories.has(item.categoryId)
+        ? item.categoryId
+        : null;
+      const payload = buildItemPayload(
+        { ...itemToValues(item), categoryId },
+        true,
+      );
+      await updateStudyItem(item.id, payload);
+    } catch (e) {
+      Alert.alert("Não foi possível salvar as horas", e.message);
+      reloadItems();
+    }
+  }
+
+  //--------------------------------------------------------------
+
   async function handleRefresh() {
     setRefreshing(true);
     await Promise.all([reloadItems(), reloadCategories()]);
     setRefreshing(false);
   }
 
-  // Create and edit use the same screen: with "item" it's editing; without "item" it's creation.
   function openForm(item) {
     navigation.navigate("StudyItemForm", item ? { item } : undefined);
   }
@@ -117,6 +187,7 @@ export default function HomeScreen({ navigation }) {
             item={item}
             category={categoriesById.get(item.categoryId)}
             onEdit={() => openForm(item)}
+            onAdjustHours={(direction) => handleAdjustHours(item, direction)}
           />
         )}
         ListHeaderComponent={<SummaryCard summary={summary} />}
@@ -181,6 +252,11 @@ export default function HomeScreen({ navigation }) {
           categories={categories}
           selectedId={selectedCategory}
           onSelect={setSelectedCategory}
+          onAdd={() => navigation.navigate("CategoryForm")}
+          onManage={() => navigation.navigate("Categories")}
+          onEditCategory={(category) =>
+            navigation.navigate("CategoryForm", { category })
+          }
         />
       </View>
 

@@ -5,13 +5,19 @@ import ProgressBar from "./ProgressBar";
 import { useTheme } from "../contexts/ThemeContext";
 import { getCategoryColor } from "../theme/theme";
 import {
+  HOURS_STEP,
   PRIORITY_LABELS,
   STATUS_LABELS,
   formatDate,
   getProgress,
 } from "../utils/studyItem";
 
-export default function StudyItemCard({ item, category, onEdit }) {
+export default function StudyItemCard({
+  item,
+  category,
+  onEdit,
+  onAdjustHours,
+}) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -19,6 +25,12 @@ export default function StudyItemCard({ item, category, onEdit }) {
     ? getCategoryColor(category.colorId, colors.primary)
     : colors.textMuted;
   const percent = getProgress(item);
+  const doneHours = Number(item.doneHours) || 0;
+  const totalHours = Number(item.totalHours) || 0;
+
+  const canRemove = doneHours > 0;
+  const canAdd = doneHours < totalHours;
+
   const statusColor =
     item.status === "DONE"
       ? colors.success
@@ -61,19 +73,45 @@ export default function StudyItemCard({ item, category, onEdit }) {
 
         <View style={styles.footer}>
           <Text style={styles.hours}>
-            {Number(item.doneHours) || 0}h de {Number(item.totalHours) || 0}h ·{" "}
-            {percent}%
+            {doneHours}h de {totalHours}h · {percent}%
           </Text>
+
+          {onAdjustHours && (
+            <View style={styles.stepper}>
+              <Pressable
+                style={[styles.stepButton, !canRemove && styles.stepDisabled]}
+                onPress={() => onAdjustHours(-1)}
+                disabled={!canRemove}
+                hitSlop={6}
+                accessibilityLabel={`Remover ${HOURS_STEP} hora`}
+              >
+                <Ionicons name="remove" size={20} color={colors.primary} />
+              </Pressable>
+              <Pressable
+                style={[styles.stepButton, !canAdd && styles.stepDisabled]}
+                onPress={() => onAdjustHours(1)}
+                disabled={!canAdd}
+                hitSlop={6}
+                accessibilityLabel={`Adicionar ${HOURS_STEP} hora`}
+              >
+                <Ionicons name="add" size={20} color={colors.primary} />
+              </Pressable>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.bottomRow}>
           <View style={[styles.badge, { backgroundColor: `${statusColor}22` }]}>
             <Text style={[styles.badgeText, { color: statusColor }]}>
               {STATUS_LABELS[item.status] ?? ""}
             </Text>
           </View>
+          {details.length > 0 && (
+            <Text style={styles.details} numberOfLines={1}>
+              {details.join(" · ")}
+            </Text>
+          )}
         </View>
-
-        {details.length > 0 && (
-          <Text style={styles.details}>{details.join(" · ")}</Text>
-        )}
       </View>
     </View>
   );
@@ -112,8 +150,23 @@ const createStyles = (colors) =>
       justifyContent: "space-between",
       alignItems: "center",
     },
-    hours: { color: colors.textMuted, fontSize: 13 },
+    hours: { color: colors.text, fontSize: 14, fontWeight: "600" },
+    stepper: { flexDirection: "row", gap: 8 },
+    stepButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: colors.primarySoft,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    stepDisabled: { opacity: 0.35 },
+    bottomRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
     badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
     badgeText: { fontSize: 12, fontWeight: "700" },
-    details: { color: colors.textMuted, fontSize: 13 },
+    details: { flexShrink: 1, color: colors.textMuted, fontSize: 13 },
   });

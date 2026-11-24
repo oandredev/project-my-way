@@ -14,12 +14,24 @@ import SignUpScreen from "../screens/SignUpScreen";
 import HomeScreen from "../screens/HomeScreen";
 import RestoringScreen from "../screens/RestoringScreen";
 import StudyItemFormScreen from "../screens/StudyItemFormScreen";
+import CategoryFormScreen from "../screens/CategoryFormScreen";
+import CategoriesScreen from "../screens/CategoriesScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   const { colors, isDark } = useTheme();
   const { user, restoring } = useAuth();
+
+  const formHeader = {
+    headerShown: true,
+    headerTintColor: colors.primary,
+    headerTitleStyle: { color: colors.text },
+    headerShadowVisible: false,
+    headerBackTitle: "Voltar",
+    animation: "slide_from_right",
+    animationDuration: 250,
+  };
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(colors.background);
@@ -58,14 +70,24 @@ export default function AppNavigator() {
               name="StudyItemForm"
               component={StudyItemFormScreen}
               options={({ route }) => ({
-                headerShown: true,
+                ...formHeader,
                 title: route.params?.item ? "Editar item" : "Novo item",
-                headerTintColor: colors.primary,
-                headerTitleStyle: { color: colors.text },
-                headerShadowVisible: false,
-                headerBackTitle: "Voltar",
-                animation: "slide_from_right",
               })}
+            />
+            <Stack.Screen
+              name="CategoryForm"
+              component={CategoryFormScreen}
+              options={({ route }) => ({
+                ...formHeader,
+                title: route.params?.category
+                  ? "Editar categoria"
+                  : "Nova categoria",
+              })}
+            />
+            <Stack.Screen
+              name="Categories"
+              component={CategoriesScreen}
+              options={{ ...formHeader, title: "Categorias" }}
             />
           </>
         ) : (

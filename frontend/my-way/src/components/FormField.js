@@ -6,6 +6,7 @@ import { useTheme } from "../contexts/ThemeContext";
 export default function FormField({
   label,
   secureTextEntry = false,
+  multiline = false,
   ...inputProps
 }) {
   const { colors, isDark } = useTheme();
@@ -15,13 +16,14 @@ export default function FormField({
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.box}>
+      <View style={[styles.box, multiline && styles.boxMultiline]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, multiline && styles.inputMultiline]}
           placeholderTextColor={colors.placeholder}
           keyboardAppearance={isDark ? "dark" : "light"}
           autoCapitalize="none"
           autoCorrect={false}
+          multiline={multiline}
           {...inputProps}
           secureTextEntry={secureTextEntry && !visible}
         />
@@ -60,6 +62,13 @@ const createStyles = (colors) =>
       paddingHorizontal: 16,
       backgroundColor: colors.surfaceAlt,
     },
+    boxMultiline: {
+      height: "auto",
+      minHeight: 112,
+      alignItems: "flex-start",
+      paddingVertical: 12,
+    },
     input: { flex: 1, fontSize: 18, color: colors.text },
+    inputMultiline: { minHeight: 88, textAlignVertical: "top" },
     eye: { paddingLeft: 12, paddingVertical: 8 },
   });
