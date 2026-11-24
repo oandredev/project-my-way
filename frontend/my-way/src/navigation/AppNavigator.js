@@ -13,6 +13,7 @@ import LoginScreen from "../screens/LoginScreen";
 import SignUpScreen from "../screens/SignUpScreen";
 import HomeScreen from "../screens/HomeScreen";
 import RestoringScreen from "../screens/RestoringScreen";
+import StudyItemFormScreen from "../screens/StudyItemFormScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -51,7 +52,22 @@ export default function AppNavigator() {
         {restoring ? (
           <Stack.Screen name="Restoring" component={RestoringScreen} />
         ) : user ? (
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen
+              name="StudyItemForm"
+              component={StudyItemFormScreen}
+              options={({ route }) => ({
+                headerShown: true,
+                title: route.params?.item ? "Editar item" : "Novo item",
+                headerTintColor: colors.primary,
+                headerTitleStyle: { color: colors.text },
+                headerShadowVisible: false,
+                headerBackTitle: "Voltar",
+                animation: "slide_from_right",
+              })}
+            />
+          </>
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />

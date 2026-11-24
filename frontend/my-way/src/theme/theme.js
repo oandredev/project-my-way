@@ -1,3 +1,9 @@
+export function getCategoryColor(colorId, fallback) {
+  return categoryColors[colorId - 1] ?? fallback;
+}
+
+//--------------------------------------------------------------
+
 export const lightColors = {
   background: "#FFFAF5",
   surface: "#FFFFFF",
@@ -10,6 +16,7 @@ export const lightColors = {
   border: "#F1E2D4",
   placeholder: "#A89B90",
   error: "#D64545",
+  success: "#2E9E5B",
 };
 
 export const darkColors = {
@@ -24,6 +31,7 @@ export const darkColors = {
   border: "#3A3430",
   placeholder: "#7D736B",
   error: "#FF6B6B",
+  success: "#4ADE80",
 };
 
 export const categoryColors = [

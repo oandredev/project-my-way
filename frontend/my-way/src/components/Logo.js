@@ -32,6 +32,6 @@ const createStyles = (size, colors) =>
     icon: {
       width: size * 0.6,
       height: size * 0.6,
-      tintColor: colors.onS,
+      tintColor: colors.on,
     },
   });

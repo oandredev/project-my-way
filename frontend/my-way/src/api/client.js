@@ -3,8 +3,6 @@ import axios from "axios";
 let authToken = null;
 let unauthorizedHandler = null;
 
-//----------------------------------------------------------------------------
-
 export function setAuthToken(token) {
   authToken = token;
 }
@@ -13,7 +11,17 @@ export function setUnauthorizedHandler(handler) {
   unauthorizedHandler = handler;
 }
 
-//----------------------------------------------------------------------------
+function unwrap(body) {
+  if (
+    body &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    "data" in body
+  ) {
+    return body.data;
+  }
+  return body;
+}
 
 const api = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
@@ -28,7 +36,10 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = unwrap(response.data);
+    return response;
+  },
   async (error) => {
     const status = error.response?.status;
     if (
