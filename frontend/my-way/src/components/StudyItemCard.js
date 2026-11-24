@@ -9,8 +9,16 @@ import {
   PRIORITY_LABELS,
   STATUS_LABELS,
   formatDate,
+  formatDaysUntil,
+  getDaysUntil,
   getProgress,
 } from "../utils/studyItem";
+
+const getStatusColor = (status, colors) => {
+  if (status === "DONE") return colors.success;
+  if (status === "IN_PROGRESS") return colors.primary;
+  return colors.textMuted;
+};
 
 export default function StudyItemCard({
   item,
@@ -24,25 +32,54 @@ export default function StudyItemCard({
   const categoryColor = category
     ? getCategoryColor(category.colorId, colors.primary)
     : colors.textMuted;
+  const statusColor = getStatusColor(item.status, colors);
+
   const percent = getProgress(item);
   const doneHours = Number(item.doneHours) || 0;
   const totalHours = Number(item.totalHours) || 0;
 
-  const canRemove = doneHours > 0;
-  const canAdd = doneHours < totalHours;
+  const stepButtons = [
+    {
+      delta: -1,
+      icon: "remove",
+      label: `Remover ${HOURS_STEP} hora`,
+      disabled: doneHours <= 0,
+    },
+    {
+      delta: 1,
+      icon: "add",
+      label: `Adicionar ${HOURS_STEP} hora`,
+      disabled: doneHours >= totalHours,
+    },
+  ];
 
-  const statusColor =
-    item.status === "DONE"
-      ? colors.success
-      : item.status === "IN_PROGRESS"
-        ? colors.primary
-        : colors.textMuted;
+  const priorityLabel = PRIORITY_LABELS[item.priority];
+  const priorityText = priorityLabel
+    ? `Prioridade ${priorityLabel.toLowerCase()}`
+    : null;
 
-  const details = [
-    PRIORITY_LABELS[item.priority] &&
-      `Prioridade ${PRIORITY_LABELS[item.priority].toLowerCase()}`,
-    item.deadline && `Prazo: ${formatDate(item.deadline)}`,
-  ].filter(Boolean);
+  const isDone = item.status === "DONE";
+  const daysLeft = item.deadline ? getDaysUntil(item.deadline) : null;
+  const isOverdue = daysLeft !== null && daysLeft < 0 && !isDone;
+
+  const deadlineText = item.deadline
+    ? `Prazo: ${formatDate(item.deadline)}${
+        isDone ? "" : ` (${formatDaysUntil(daysLeft)})`
+      }`
+    : null;
+
+  const completedText =
+    isDone && item.completedAt
+      ? `Concluído em ${formatDate(item.completedAt)}`
+      : null;
+
+  const deadlineLine = [deadlineText, completedText]
+    .filter(Boolean)
+    .join(" · ");
+
+  const metaText = [item.institution, category?.name]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <View style={styles.card}>
@@ -55,7 +92,7 @@ export default function StudyItemCard({
               {item.title}
             </Text>
             <Text style={styles.meta} numberOfLines={1}>
-              {[item.institution, category?.name].filter(Boolean).join(" · ")}
+              {metaText}
             </Text>
           </View>
 
@@ -78,40 +115,44 @@ export default function StudyItemCard({
 
           {onAdjustHours && (
             <View style={styles.stepper}>
-              <Pressable
-                style={[styles.stepButton, !canRemove && styles.stepDisabled]}
-                onPress={() => onAdjustHours(-1)}
-                disabled={!canRemove}
-                hitSlop={6}
-                accessibilityLabel={`Remover ${HOURS_STEP} hora`}
-              >
-                <Ionicons name="remove" size={20} color={colors.primary} />
-              </Pressable>
-              <Pressable
-                style={[styles.stepButton, !canAdd && styles.stepDisabled]}
-                onPress={() => onAdjustHours(1)}
-                disabled={!canAdd}
-                hitSlop={6}
-                accessibilityLabel={`Adicionar ${HOURS_STEP} hora`}
-              >
-                <Ionicons name="add" size={20} color={colors.primary} />
-              </Pressable>
+              {stepButtons.map(({ delta, icon, label, disabled }) => (
+                <Pressable
+                  key={delta}
+                  style={[styles.stepButton, disabled && styles.stepDisabled]}
+                  onPress={() => onAdjustHours(delta)}
+                  disabled={disabled}
+                  hitSlop={6}
+                  accessibilityLabel={label}
+                >
+                  <Ionicons name={icon} size={20} color={colors.primary} />
+                </Pressable>
+              ))}
             </View>
           )}
         </View>
 
-        <View style={styles.bottomRow}>
+        <View style={styles.statusLine}>
           <View style={[styles.badge, { backgroundColor: `${statusColor}22` }]}>
             <Text style={[styles.badgeText, { color: statusColor }]}>
               {STATUS_LABELS[item.status] ?? ""}
             </Text>
           </View>
-          {details.length > 0 && (
-            <Text style={styles.details} numberOfLines={1}>
-              {details.join(" · ")}
-            </Text>
-          )}
+          {priorityText && <Text style={styles.details}>{priorityText}</Text>}
         </View>
+
+        {deadlineLine !== "" && (
+          <>
+            <View style={styles.divider} />
+            <Text
+              style={[
+                styles.details,
+                isOverdue && { color: colors.danger ?? colors.textMuted },
+              ]}
+            >
+              {deadlineLine}
+            </Text>
+          </>
+        )}
       </View>
     </View>
   );
@@ -133,6 +174,7 @@ const createStyles = (colors) =>
     },
     stripe: { width: 6 },
     body: { flex: 1, padding: 16, gap: 10 },
+
     titleRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
     titleBox: { flex: 1 },
     title: { color: colors.text, fontSize: 17, fontWeight: "700" },
@@ -145,6 +187,7 @@ const createStyles = (colors) =>
       alignItems: "center",
       justifyContent: "center",
     },
+
     footer: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -161,12 +204,20 @@ const createStyles = (colors) =>
       justifyContent: "center",
     },
     stepDisabled: { opacity: 0.35 },
-    bottomRow: {
+
+    statusLine: {
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
+      flexWrap: "wrap",
       gap: 8,
     },
     badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
     badgeText: { fontSize: 12, fontWeight: "700" },
-    details: { flexShrink: 1, color: colors.textMuted, fontSize: 13 },
+    details: { color: colors.textMuted, fontSize: 13, textAlign: "center" },
+
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.border,
+    },
   });

@@ -56,6 +56,12 @@ export function formatDate(iso) {
   return year && month && day ? `${day}/${month}/${year}` : "";
 }
 
+export function todayISO() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export const HOURS_STEP = 1;
 
 export function deriveStatus(doneHours, totalHours) {
@@ -67,4 +73,34 @@ export function deriveStatus(doneHours, totalHours) {
 export function adjustHours(doneHours, totalHours, delta) {
   const next = Math.round((doneHours + delta) * 100) / 100;
   return Math.min(totalHours, Math.max(0, next));
+}
+
+//--------------------------------------------------------------
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function toLocalDay(value) {
+  if (value instanceof Date) {
+    return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+  }
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value));
+  if (match) {
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+  const d = new Date(value);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+export function getDaysUntil(deadline) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((toLocalDay(deadline) - today) / MS_PER_DAY);
+}
+
+export function formatDaysUntil(days) {
+  if (days === 0) return "hoje";
+  if (days === 1) return "amanhã";
+  if (days === -1) return "venceu ontem";
+  if (days < 0) return `atrasado há ${-days} dias`;
+  return `daqui ${days} dias`;
 }
