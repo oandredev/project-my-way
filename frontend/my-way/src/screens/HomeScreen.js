@@ -89,6 +89,17 @@ export default function HomeScreen({ navigation }) {
     return () => Object.values(timers).forEach(clearTimeout);
   }, []);
 
+  useEffect(() => {
+    if (
+      !loadingCategories &&
+      !categoriesError &&
+      selectedCategory !== null &&
+      !categories.some((c) => c.id === selectedCategory)
+    ) {
+      setSelectedCategory(null);
+    }
+  }, [categories, loadingCategories, categoriesError, selectedCategory]);
+
   function handleAdjustHours(item, direction) {
     const total = Number(item.totalHours) || 0;
     const done = Number(item.doneHours) || 0;
