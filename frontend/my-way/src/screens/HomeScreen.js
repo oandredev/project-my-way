@@ -79,10 +79,6 @@ export default function HomeScreen({ navigation }) {
     });
   }, [items, search, selectedCategory]);
 
-  //--------------------------------------------------------------
-  // Ajuste rápido das horas (+ e −)
-
-  // Os timers de envio leem o estado mais recente por aqui
   const latest = useRef({ items, categoriesById });
   latest.current = { items, categoriesById };
 
@@ -137,6 +133,18 @@ export default function HomeScreen({ navigation }) {
   }
 
   //--------------------------------------------------------------
+
+  function handleSignOut() {
+    Alert.alert(
+      "Sair da conta",
+      "Tem certeza de que deseja sair?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Sair", style: "destructive", onPress: signOut },
+      ],
+      { cancelable: true },
+    );
+  }
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -234,7 +242,11 @@ export default function HomeScreen({ navigation }) {
               Continue sua trilha de aprendizado
             </Text>
           </View>
-          <Pressable style={styles.iconButton} onPress={signOut} hitSlop={8}>
+          <Pressable
+            style={styles.iconButton}
+            onPress={handleSignOut}
+            hitSlop={8}
+          >
             <Ionicons
               name="log-out-outline"
               size={22}
