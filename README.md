@@ -7,7 +7,7 @@
 
 ---
 
-<!-- Insira aqui o logo do projeto: <img width="187" height="187" alt="Logo do My Way" src="URL_DO_LOGO" /> -->
+ <img width="187" height="187" alt="Logo do My Way" src="./doc/logo-my-way.svg" />
 
 # My Way
 
