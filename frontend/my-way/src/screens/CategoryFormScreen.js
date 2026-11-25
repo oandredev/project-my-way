@@ -59,18 +59,18 @@ export default function CategoryFormScreen({ route, navigation }) {
     }
   }
 
-  function handleArchive() {
+  function handleDelete() {
     Alert.alert(
-      "Arquivar categoria",
-      "Ela deixará de aparecer nos filtros, e os itens dela ficarão sem categoria na lista. Deseja continuar?",
+      "Excluir categoria",
+      "Todos os itens associados a esta categoria serão removidos da lista. Deseja continuar?",
       [
         { text: "Cancelar", style: "cancel" },
-        { text: "Arquivar", style: "destructive", onPress: archive },
+        { text: "Excluir", style: "destructive", onPress: deleteCategory },
       ],
     );
   }
 
-  async function archive() {
+  async function deleteCategory() {
     setError("");
     setLoading(true);
     try {
@@ -129,9 +129,9 @@ export default function CategoryFormScreen({ route, navigation }) {
         {isEditing && (
           <Button
             variant="danger"
-            title="Arquivar categoria"
-            icon="archive-outline"
-            onPress={handleArchive}
+            title="Excluir categoria"
+            icon="trash-outline"
+            onPress={handleDelete}
             disabled={loading}
             style={styles.archive}
           />
