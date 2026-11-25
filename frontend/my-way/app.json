@@ -18,6 +18,13 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-secure-store"]
+    "plugins": [
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Permitir que o My Way use o Face ID para proteger seu acesso."
+        }
+      ]
+    ]
   }
 }
