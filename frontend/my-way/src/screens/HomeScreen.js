@@ -244,6 +244,18 @@ export default function HomeScreen({ navigation }) {
           </View>
           <Pressable
             style={styles.iconButton}
+            onPress={() => navigation.navigate("Settings")}
+            hitSlop={8}
+            accessibilityLabel="Configurações"
+          >
+            <Ionicons
+              name="settings-outline"
+              size={22}
+              color={colors.textMuted}
+            />
+          </Pressable>
+          <Pressable
+            style={styles.iconButton}
             onPress={handleSignOut}
             hitSlop={8}
           >

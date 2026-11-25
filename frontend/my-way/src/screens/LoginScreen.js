@@ -1,4 +1,3 @@
-// src/screens/LoginScreen.js
 import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,

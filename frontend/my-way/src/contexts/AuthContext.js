@@ -46,7 +46,7 @@ export function AuthProvider({ children }) {
         setUser(savedUser);
       }
 
-      await new Promise((r) => setTimeout(r, 3000)); // ONLY TESTs
+      await new Promise((r) => setTimeout(r, 1500)); // ONLY TESTs
 
       if (cancelledRef.current) return;
 

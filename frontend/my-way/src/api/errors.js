@@ -1,5 +1,4 @@
 const MESSAGES = {
-  // Usuário
   "Email already in use": "Este e-mail já está em uso.",
   "Email or password are invalid": "E-mail ou senha inválidos.",
   "This account was archived": "Esta conta foi arquivada.",
@@ -7,12 +6,10 @@ const MESSAGES = {
   "Current password is required": "Digite a senha atual.",
   "Current password is incorrect": "Senha atual incorreta.",
 
-  // Categorias
   "Category name already in use by this user":
     "Você já tem uma categoria com esse nome.",
   "Category not found": "Categoria não encontrada.",
 
-  // Itens
   "Study item not found": "Item não encontrado.",
 };
 

@@ -16,6 +16,7 @@ import RestoringScreen from "../screens/RestoringScreen";
 import StudyItemFormScreen from "../screens/StudyItemFormScreen";
 import CategoryFormScreen from "../screens/CategoryFormScreen";
 import CategoriesScreen from "../screens/CategoriesScreen";
+import SettingsScreen from "../screens/SettingsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -88,6 +89,11 @@ export default function AppNavigator() {
               name="Categories"
               component={CategoriesScreen}
               options={{ ...formHeader, title: "Categorias" }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{ ...formHeader, title: "Configurações" }}
             />
           </>
         ) : (

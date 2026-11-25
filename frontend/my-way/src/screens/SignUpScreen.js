@@ -1,4 +1,3 @@
-// src/screens/SignUpScreen.js
 import { useMemo, useState } from "react";
 import {
   Alert,
